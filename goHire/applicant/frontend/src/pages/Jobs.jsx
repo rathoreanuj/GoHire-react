@@ -9,11 +9,12 @@ import JobFilters from "../components/jobs/JobFilters";
 const Jobs = () => {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [query, setQuery] = useState("");
 
   useEffect(() => {
     const fetchJobs = async () => {
       try {
-        const jobs = await applicantApi.getJobs("");
+        const jobs = await applicantApi.getJobs(query);
         setJobs(jobs);
       } catch (error) {
         console.error("Error fetching jobs:", error);
@@ -22,7 +23,7 @@ const Jobs = () => {
       }
     };
     fetchJobs();
-  }, []);
+  }, [query]);
 
   if (loading) {
     return (
@@ -39,7 +40,7 @@ const Jobs = () => {
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Filters - left column */}
           <div className="w-full lg:w-1/4">
-            <JobFilters />
+            <JobFilters setQuery={setQuery}/>
           </div>
 
           {/* Job list - right column */}

@@ -14,45 +14,38 @@ const getJobs = async (req, res) => {
     const recruiterConn = await connectRecruiterDB();
     const JobFindConn = createJobModel(recruiterConn);
     const CompanyModel = createCompanyModel(recruiterConn);
-    const {
-      salary1,
-      salary2,
-      salary3,
-      salary4,
-      exp1,
-      exp2,
-      exp3,
-      exp4,
-      exp5,
-      exp6,
-    } = req.query;
+
+    const { salaryMin, salaryMax, expMin, expMax } = req.query;
+
     const query = {};
 
-    // salary filters
-    if (salary1) query.salary = { $lt: 10 };
-    else if (salary2) query.salary = { $gte: 10, $lte: 20 };
-    else if (salary3) query.salary = { $gte: 20, $lte: 30 };
-    else if (salary4) query.salary = { $gt: 30 };
+    if (salaryMin || salaryMax) {
+      query.jobSalary = {};
+      if (salaryMin) query.jobSalary.$gte = Number(salaryMin);
+      if (salaryMax) query.jobSalary.$lte = Number(salaryMax);
+    }
 
-    // experience filters
-    if (exp1) query.experience = 0;
-    else if (exp2) query.experience = { $lt: 1 };
-    else if (exp3) query.experience = { $gte: 1, $lte: 3 };
-    else if (exp4) query.experience = { $gte: 3, $lte: 5 };
-    else if (exp5) query.experience = { $gte: 5, $lte: 10 };
-    else if (exp6) query.experience = { $gt: 10 };
+    if (expMin || expMax) {
+      query.jobExperience = {};
+      if (expMin) query.jobExperience.$gte = Number(expMin);
+      if (expMax) query.jobExperience.$lte = Number(expMax);
+    }
 
-    const JobFind = await JobFindConn.find({query})
+    console.log("Query:", query);
+
+    const jobs = await JobFindConn.find(query)
       .populate({
         path: "jobCompany",
         strictPopulate: false,
       })
       .lean();
 
+    console.log("Jobs:", jobs);
+
     res.status(200).json({
       message: "success",
-      results: JobFind.length,
-      jobs: JobFind,
+      results: jobs.length,
+      jobs: jobs,
     });
   } catch (err) {
     console.error("Error fetching jobs:", err);
