@@ -6,8 +6,7 @@ export const applicantApi = {
     if(query) endpoint = `/applicant/jobs?${query}`
     else endpoint = `/applicant/jobs`
     const response = await api.get(endpoint);
-    console.log(response.data.jobs);
-    return response.data.jobs;
+    return response.data;
   },
 
   getInternships: async () => {

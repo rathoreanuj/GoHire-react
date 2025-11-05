@@ -13,45 +13,61 @@ const getJobs = async (req, res) => {
   try {
     const recruiterConn = await connectRecruiterDB();
     const JobFindConn = createJobModel(recruiterConn);
-    const CompanyModel = createCompanyModel(recruiterConn);
 
-    const { salaryMin, salaryMax, expMin, expMax } = req.query;
-
-    const query = {};
+    let { salaryMin, salaryMax, expMin, expMax, page } = req.query;
+    page = parseInt(page) || 1;
+    console.log('page:', page);
+    const pageSize = 1;
+    const filterCriteria = {};
 
     if (salaryMin || salaryMax) {
-      query.jobSalary = {};
-      if (salaryMin) query.jobSalary.$gte = Number(salaryMin);
-      if (salaryMax) query.jobSalary.$lte = Number(salaryMax);
+      filterCriteria.jobSalary = {};
+      if (salaryMin) filterCriteria.jobSalary.$gte = Number(salaryMin);
+      if (salaryMax) filterCriteria.jobSalary.$lte = Number(salaryMax);
     }
 
     if (expMin || expMax) {
-      query.jobExperience = {};
-      if (expMin) query.jobExperience.$gte = Number(expMin);
-      if (expMax) query.jobExperience.$lte = Number(expMax);
+      filterCriteria.jobExperience = {};
+      if (expMin) filterCriteria.jobExperience.$gte = Number(expMin);
+      if (expMax) filterCriteria.jobExperience.$lte = Number(expMax);
     }
 
-    console.log("Query:", query);
+    const jobs = await JobFindConn.aggregate([
+      { $match: filterCriteria },
+      { $sort: { createdAt: -1 } },
+      {
+        $lookup: {
+          from: "companies",
+          localField: "jobCompany",
+          foreignField: "_id",
+          as: "jobCompany",
+        },
+      },
+      {
+        $unwind: { path: "$jobCompany", preserveNullAndEmptyArrays: true },
+      },
+      {
+        $facet: {
+          metaData: [{ $count: "totalcount" }],
+          data: [{ $skip: (page - 1) * pageSize }, { $limit: pageSize }],
+        },
+      },
+    ]);
 
-    const jobs = await JobFindConn.find(query)
-      .populate({
-        path: "jobCompany",
-        strictPopulate: false,
-      })
-      .lean();
-
-    console.log("Jobs:", jobs);
-
+    const totalCount = jobs[0]?.metaData[0]?.totalcount || 0;
+    const totalPages = Math.ceil(totalCount / pageSize);
+   
     res.status(200).json({
       message: "success",
-      results: jobs.length,
-      jobs: jobs,
+      meta: { totalCount, totalPages, page, pageSize },
+      jobs: jobs[0]?.data || [],
     });
   } catch (err) {
     console.error("Error fetching jobs:", err);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
 
 const getInternships = async (req, res) => {
   try {

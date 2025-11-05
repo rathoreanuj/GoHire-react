@@ -5,25 +5,44 @@ import Header from "../components/common/Header";
 import EmptyState from "../components/common/EmptyState";
 import JobCard from "../components/jobs/JobCard";
 import JobFilters from "../components/jobs/JobFilters";
+import Pagination from "../components/jobs/Pagination";
 
 const Jobs = () => {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [query, setQuery] = useState("");
+  const [filters, setFilters] = useState({});
+  const [totalPages, setTotalPages] = useState(0);
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     const fetchJobs = async () => {
       try {
-        const jobs = await applicantApi.getJobs(query);
-        setJobs(jobs);
+        // Build query string from both filters and pagination
+        const params = new URLSearchParams();
+        
+        // Add pagination
+        params.set("page", page);
+        
+        // Add filters
+        Object.entries(filters).forEach(([key, value]) => {
+          if (value !== undefined && value !== null && value !== "") {
+            params.set(key, value);
+          }
+        });
+
+        const queryString = params.toString();
+        const data = await applicantApi.getJobs(queryString);
+        setJobs(data.jobs);
+        setTotalPages(data.meta.totalPages);
       } catch (error) {
         console.error("Error fetching jobs:", error);
       } finally {
         setLoading(false);
       }
     };
+    
     fetchJobs();
-  }, [query]);
+  }, [filters, page]); // Trigger when either filters or page changes
 
   if (loading) {
     return (
@@ -33,6 +52,16 @@ const Jobs = () => {
     );
   }
 
+  const handlePageChange = (newPage) => {
+    setPage(newPage);
+  };
+
+  const handleFiltersChange = (newFilters) => {
+    // Reset to page 1 when filters change
+    setPage(1);
+    setFilters(newFilters);
+  };
+
   return (
     <div>
       <Header title="Available Jobs" />
@@ -40,7 +69,7 @@ const Jobs = () => {
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Filters - left column */}
           <div className="w-full lg:w-1/4">
-            <JobFilters setQuery={setQuery}/>
+            <JobFilters onFiltersChange={handleFiltersChange} />
           </div>
 
           {/* Job list - right column */}
@@ -52,6 +81,11 @@ const Jobs = () => {
                 {jobs.map((job) => (
                   <JobCard key={job._id} job={job} />
                 ))}
+                <Pagination 
+                  totalPages={totalPages} 
+                  page={page} 
+                  onPageChange={handlePageChange} 
+                />
               </div>
             )}
           </div>

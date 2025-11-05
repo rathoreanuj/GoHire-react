@@ -1,19 +1,25 @@
 import { useState } from "react";
 import Slider from "@mui/material/Slider";
-import JobCard from "./JobCard";
 
-export default function JobFilters({setQuery}) {
+export default function JobFilters({ onFiltersChange }) {
   const [salary, setSalary] = useState([0, 100]);
   const [experience, setExperience] = useState([0, 10]);
+
   const handleSubmit = async () => {
-    const params = new URLSearchParams({
+    const filterParams = {
       salaryMin: salary[0],
       salaryMax: salary[1],
       expMin: experience[0],
       expMax: experience[1],
-    });
+    };
 
-    setQuery(params.toString());
+    onFiltersChange(filterParams);
+  };
+
+  const handleClear = () => {
+    setSalary([0, 100]);
+    setExperience([0, 10]);
+    onFiltersChange({}); // Clear all filters
   };
 
   return (
@@ -23,10 +29,7 @@ export default function JobFilters({setQuery}) {
         <button
           type="button"
           className="text-blue-500 text-sm"
-          onClick={() => {
-            setSalary([0, 100]);
-            setExperience([0, 10]);
-          }}
+          onClick={handleClear}
         >
           Clear All
         </button>
