@@ -87,7 +87,7 @@ const getInternships = async (req, res) => {
 
     if (durationMin || durationMax) {
       filterCriteria.intExperience = {};
-      if (durationMin) filterCriteria.intExperience.$gte = Number(expMin);
+      if (durationMin) filterCriteria.intExperience.$gte = Number(durationMin);
       if (durationMax) filterCriteria.intExperience.$lte = Number(durationMax);
     }
 
