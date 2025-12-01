@@ -14,10 +14,7 @@ const connectApplicantDB = async () => {
       return applicantConnection;
     }
 
-    applicantConnection = await mongoose.createConnection(process.env.MONGO_URI_APPLICANT, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    applicantConnection = await mongoose.createConnection(process.env.MONGO_URI_APPLICANT);
 
     console.log(`✅ Applicant MongoDB Connected: ${applicantConnection.host}`);
     return applicantConnection;
