@@ -2,23 +2,25 @@ import { useState } from "react";
 import Slider from "@mui/material/Slider";
 
 export default function JobFilters({ onFiltersChange }) {
-  const [salary, setSalary] = useState([0, 100]);
+  const [salaryMin, setSalaryMin] = useState(0);
   const [experience, setExperience] = useState([0, 10]);
+  const [location, setLocation] = useState("");
 
   const handleSubmit = async () => {
     const filterParams = {
-      salaryMin: salary[0],
-      salaryMax: salary[1],
+      salaryMin: salaryMin,
       expMin: experience[0],
       expMax: experience[1],
+      location: location.trim()
     };
 
     onFiltersChange(filterParams);
   };
 
   const handleClear = () => {
-    setSalary([0, 100]);
+    setSalaryMin(0);
     setExperience([0, 10]);
+    setLocation("");
     onFiltersChange({}); // Clear all filters
   };
 
@@ -38,15 +40,15 @@ export default function JobFilters({ onFiltersChange }) {
       <div className="mx-auto max-w-md rounded-lg bg-white p-6 shadow-lg">
         {/* Salary */}
         <div className="mb-6 border-b border-gray-100 pb-4">
-          <h4 className="font-medium mb-2">Salary Range (LPA)</h4>
+          <h4 className="font-medium mb-2">Min Salary Range (LPA)</h4>
           <Slider
-            value={salary}
-            onChange={(_, newValue) => setSalary(newValue)}
+            value={salaryMin}
+            onChange={(_, newValue) => setSalaryMin(newValue)}
             valueLabelDisplay="auto"
             min={0}
             max={100}
           />
-          <p>Range: {salary[0]} – {salary[1]} LPA</p>
+          <p>Min Salary: {salaryMin} LPA</p>
         </div>
 
         {/* Experience */}
@@ -60,6 +62,17 @@ export default function JobFilters({ onFiltersChange }) {
             max={10}
           />
           <p>Range: {experience[0]} – {experience[1]} Years</p>
+        </div>
+
+        <div className="mb-4">
+          <h4 className="font-medium mb-2">Location</h4>
+          <input
+            type="text"
+            className="w-full rounded border border-gray-300 p-2 text-sm"
+            placeholder="Enter location"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}   
+          />
         </div>
 
         <button

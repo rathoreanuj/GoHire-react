@@ -98,9 +98,9 @@ const InternshipCard = ({ internship }) => {
 
       {/* Footer Section */}
       <div className="flex items-center justify-between border-t pt-4">
-        {internship.intStipned && (
+        {internship.intStipend && (
           <div className="text-sm font-medium text-gray-800">
-            {internship.intStipned} LPA
+            {internship.intStipend}
           </div>
         )}
         <Link

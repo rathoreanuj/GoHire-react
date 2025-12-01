@@ -14,22 +14,28 @@ const getJobs = async (req, res) => {
     const recruiterConn = await connectRecruiterDB();
     const JobFindConn = createJobModel(recruiterConn);
 
-    let { salaryMin, salaryMax, expMin, expMax, page } = req.query;
+    let { salaryMin, expMin, expMax, page, location } = req.query;
     page = parseInt(page) || 1;
-
+    console.log(location);
     const pageSize = 1;
     const filterCriteria = {};
 
-    if (salaryMin || salaryMax) {
+    if (salaryMin) {
       filterCriteria.jobSalary = {};
       if (salaryMin) filterCriteria.jobSalary.$gte = Number(salaryMin);
-      if (salaryMax) filterCriteria.jobSalary.$lte = Number(salaryMax);
     }
 
     if (expMin || expMax) {
       filterCriteria.jobExperience = {};
       if (expMin) filterCriteria.jobExperience.$gte = Number(expMin);
       if (expMax) filterCriteria.jobExperience.$lte = Number(expMax);
+    }
+
+    if (location && location.trim()) {
+      filterCriteria.jobLocation = {
+        $regex: location.trim(),
+        $options: "i"
+      };
     }
 
     const jobs = await JobFindConn.aggregate([
@@ -74,15 +80,13 @@ const getInternships = async (req, res) => {
     const InternshipFindConn = createInternshipModel(recruiterConn);
     const CompanyModel = createCompanyModel(recruiterConn);
 
-    let { stipendMin, stipendMax, durationMin, durationMax, page } = req.query;
+    let { stipendMin, durationMin, durationMax, page, location } = req.query;
     page = parseInt(page) || 1;
     const pageSize = 1;
     const filterCriteria = {};
-
-    if (stipendMin || stipendMax) {
-      filterCriteria.intStipend = {};
-      if (stipendMin) filterCriteria.intStipend.$gte = Number(stipendMin);
-      if (stipendMax) filterCriteria.intStipend.$lte = Number(stipendMax);
+    console.log(location)
+    if (stipendMin !== undefined) {
+      filterCriteria.intStipend = { $gte: Number(stipendMin) * 1000 };
     }
 
     if (durationMin || durationMax) {
@@ -91,12 +95,19 @@ const getInternships = async (req, res) => {
       if (durationMax) filterCriteria.intExperience.$lte = Number(durationMax);
     }
 
+    if (location && location.trim()) {
+      filterCriteria.intLocation = {
+        $regex: location.trim(),
+        $options: "i"
+      };
+    }
+
     const internships = await InternshipFindConn.aggregate([
       { $match: filterCriteria },
       { $sort: { createdAt: -1 } },
       {
         $lookup: {
-          from: "companies", 
+          from: "companies",
           localField: "intCompany",
           foreignField: "_id",
           as: "intCompany",
@@ -113,7 +124,6 @@ const getInternships = async (req, res) => {
 
     const totalCount = internships[0]?.metaData[0]?.totalcount || 0;
     const totalPages = Math.ceil(totalCount / pageSize);
-
 
     res.status(200).json({
       message: "success",

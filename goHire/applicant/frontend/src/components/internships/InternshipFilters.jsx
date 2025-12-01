@@ -2,23 +2,24 @@ import { useState } from "react";
 import Slider from "@mui/material/Slider";
 
 export default function InternshipFilters({ onFiltersChange }) {
-  const [stipend, setStipend] = useState([0, 200]);
+  const [stipendMin, setStipendMin] = useState(0);
   const [duration, setDuration] = useState([0, 12]);
-
+  const [location, setLocation] = useState("");
   const handleSubmit = async () => {
     const filterParams = {
-      stipendMin: stipend[0],
-      stipendMax: stipend[1],
+      stipendMin: stipendMin,
       durationMin: duration[0],
       durationMax: duration[1],
+      location: location.trim()
     };
 
     onFiltersChange(filterParams);
   };
 
   const handleClear = () => {
-    setStipend([0, 200]);
+    setStipendMin(0);
     setDuration([0, 12]);
+    setLocation("");
     onFiltersChange({}); // Clear all filters
   };
 
@@ -38,15 +39,15 @@ export default function InternshipFilters({ onFiltersChange }) {
       <div className="mx-auto max-w-md rounded-lg bg-white p-6 shadow-lg">
         {/* Salary */}
         <div className="mb-6 border-b border-gray-100 pb-4">
-          <h4 className="font-medium mb-2">Stipend Range (K)</h4>
+          <h4 className="font-medium mb-2">Min Stipend Range (K)</h4>
           <Slider
-            value={stipend}
-            onChange={(_, newValue) => setStipend(newValue)}
+            value={stipendMin}
+            onChange={(_, newValue) => setStipendMin(newValue)}
             valueLabelDisplay="auto"
             min={0}
             max={200}
           />
-          <p>Range: {stipend[0]} – {stipend[1]} </p>
+          <p>Range: {stipendMin}K </p>
         </div>
 
         {/* Experience */}
@@ -60,6 +61,17 @@ export default function InternshipFilters({ onFiltersChange }) {
             max={12}
           />
           <p>Range: {duration[0]} – {duration[1]} months</p>
+        </div>
+
+        <div className="mb-4">
+          <h4 className="font-medium mb-2">Location</h4>
+          <input
+            type="text"
+            className="w-full rounded border border-gray-300 p-2 text-sm"
+            placeholder="Enter location"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}   
+          />
         </div>
 
         <button
