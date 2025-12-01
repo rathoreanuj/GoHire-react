@@ -11,7 +11,7 @@ const Dashboard = () => {
   const { user, isAuthenticated } = useContext(AuthContext);
 
   useEffect(() => {
-    const fetchStatistics = async () => {
+    const fetchStatistics = async () => { 
       try {
         const data = await applicationsApi.getStatistics();
         setStatistics(data);
@@ -48,13 +48,15 @@ const Dashboard = () => {
                 Recruiter Dashboard
               </div>
 
-              <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-tight">
-                Welcome
-                <span className="text-yellow-400 space ml-3">
-                  {user.firstName}
-                  {isAuthenticated ? (
-                    <BadgeCheck className='text-yellow-400 font-bold inline-block ml-2 mt-6 align-text-top' />
-                  ) : (null)}
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight whitespace-nowrap">
+                <span className="inline-flex items-center">
+                  Welcome
+                  <span className="text-yellow-400 ml-3 inline-flex items-center">
+                    {user.firstName}
+                    {isAuthenticated ? (
+                      <BadgeCheck className='text-yellow-400 ml-2 w-6 h-6 md:w-7 md:h-7 lg:w-8 lg:h-8 flex-shrink-0' />
+                    ) : (null)}
+                  </span>
                 </span>
               </h1>
 
@@ -82,7 +84,7 @@ const Dashboard = () => {
             </div>
 
             {/* Right Image */}
-            <div className="relative hidden lg:block">
+            <div className="relative hidden lg:block ml-[70px]">
               <div className="relative">
                 {/* Main Image */}
                 <div className="rounded-2xl shadow-2xl overflow-hidden transition-transform duration-300 hover:scale-105">
