@@ -29,6 +29,13 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Enhanced error handling for network errors
+    if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
+      console.error('Network Error: Backend server may not be running');
+      console.error('Attempted URL:', error.config?.url);
+      console.error('Base URL:', error.config?.baseURL);
+      error.message = 'Cannot connect to server. Please ensure the backend server is running on port 3000.';
+    }
     // Do not redirect here. Let the AuthContext handle it.
     return Promise.reject(error);
   }
