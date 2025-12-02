@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { validateEmail } from '../../utils/emailValidation';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [emailError, setEmailError] = useState('');
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -45,17 +47,31 @@ const Login = () => {
 
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-            Email
+            Email <span className="text-red-500">*</span>
           </label>
           <input
             id="email"
             type="email"
             required
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            onChange={(e) => {
+              setEmail(e.target.value);
+              setEmailError("");
+            }}
+            onBlur={(e) => {
+              const error = validateEmail(e.target.value);
+              setEmailError(error);
+            }}
+            className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 ${
+              emailError
+                ? "border-red-500 focus:ring-red-500 focus:border-red-500"
+                : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+            }`}
             placeholder="Enter your email"
           />
+          {emailError && (
+            <p className="mt-1 text-sm text-red-600">{emailError}</p>
+          )}
         </div>
 
         <div>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import profileService from "../services/profileService";
 import { useToast } from "../contexts/ToastContext";
+import { validateEmail } from "../utils/emailValidation";
 
 const EditProfile = () => {
   const navigate = useNavigate();
@@ -57,7 +58,7 @@ const EditProfile = () => {
     if (name === 'firstName' || name === 'lastName') {
       validateName(name, value);
     } else if (name === 'email') {
-      validateEmail(value);
+      validateEmailField(value);
     } else if (name === 'phone') {
       validatePhone(value);
     } else if (name === 'newPassword') {
@@ -91,107 +92,10 @@ const EditProfile = () => {
     return isValid;
   };
 
-  const validateEmail = (email) => {
-    if (!email || email.trim().length === 0) {
-      setErrors((prev) => ({ ...prev, email: 'Email is required' }));
-      return false;
-    }
-
-    // Check for basic structure
-    if (!email.includes('@')) {
-      setErrors((prev) => ({ ...prev, email: 'Email must contain @ symbol' }));
-      return false;
-    }
-
-    const parts = email.split('@');
-    if (parts.length !== 2) {
-      setErrors((prev) => ({ ...prev, email: 'Email must contain exactly one @ symbol' }));
-      return false;
-    }
-
-    const [localPart, domainPart] = parts;
-
-    // Validate local part (before @)
-    if (!localPart || localPart.length === 0) {
-      setErrors((prev) => ({ ...prev, email: 'Email must have text before @ symbol' }));
-      return false;
-    }
-
-    if (localPart.length > 64) {
-      setErrors((prev) => ({ ...prev, email: 'Text before @ is too long (max 64 characters)' }));
-      return false;
-    }
-
-    // Check for invalid characters in local part
-    if (!/^[a-zA-Z0-9._%+-]+$/.test(localPart)) {
-      setErrors((prev) => ({ ...prev, email: 'Email contains invalid characters before @' }));
-      return false;
-    }
-
-    // Check for consecutive dots
-    if (localPart.includes('..')) {
-      setErrors((prev) => ({ ...prev, email: 'Email cannot have consecutive dots' }));
-      return false;
-    }
-
-    // Check if starts or ends with dot
-    if (localPart.startsWith('.') || localPart.endsWith('.')) {
-      setErrors((prev) => ({ ...prev, email: 'Email cannot start or end with a dot before @' }));
-      return false;
-    }
-
-    // Validate domain part (after @)
-    if (!domainPart || domainPart.length === 0) {
-      setErrors((prev) => ({ ...prev, email: 'Email must have a domain after @ symbol' }));
-      return false;
-    }
-
-    if (!domainPart.includes('.')) {
-      setErrors((prev) => ({ ...prev, email: 'Domain must contain at least one dot (e.g., .com)' }));
-      return false;
-    }
-
-    // Check domain format
-    if (!/^[a-zA-Z0-9.-]+$/.test(domainPart)) {
-      setErrors((prev) => ({ ...prev, email: 'Domain contains invalid characters' }));
-      return false;
-    }
-
-    const domainParts = domainPart.split('.');
-    
-    // Check if domain has at least two parts (e.g., gmail.com)
-    if (domainParts.length < 2) {
-      setErrors((prev) => ({ ...prev, email: 'Domain must have at least two parts (e.g., gmail.com)' }));
-      return false;
-    }
-
-    // Validate each domain part
-    for (let part of domainParts) {
-      if (!part || part.length === 0) {
-        setErrors((prev) => ({ ...prev, email: 'Domain has empty parts' }));
-        return false;
-      }
-      if (part.startsWith('-') || part.endsWith('-')) {
-        setErrors((prev) => ({ ...prev, email: 'Domain parts cannot start or end with hyphen' }));
-        return false;
-      }
-    }
-
-    // Validate TLD (last part)
-    const tld = domainParts[domainParts.length - 1];
-    if (tld.length < 2) {
-      setErrors((prev) => ({ ...prev, email: 'Domain extension must be at least 2 characters' }));
-      return false;
-    }
-
-    if (!/^[a-zA-Z]+$/.test(tld)) {
-      setErrors((prev) => ({ ...prev, email: 'Domain extension must contain only letters' }));
-      return false;
-    }
-
-    // All validations passed
-    setErrors((prev) => ({ ...prev, email: '' }));
-    return true;
+  const validateEmailField = (email) => {
+    const error = validateEmail(email);
+    setErrors((prev) => ({ ...prev, email: error }));
+    return error === '';
   };
 
   const validatePhone = (phone) => {
@@ -323,7 +227,7 @@ const EditProfile = () => {
     // Validate all required fields
     const isFirstNameValid = validateName('firstName', formData.firstName);
     const isLastNameValid = validateName('lastName', formData.lastName);
-    const isEmailValid = validateEmail(formData.email);
+    const isEmailValid = validateEmailField(formData.email);
     const isPhoneValid = validatePhone(formData.phone);
 
     if (!isFirstNameValid || !isLastNameValid || !isEmailValid || !isPhoneValid) {
@@ -458,6 +362,7 @@ const EditProfile = () => {
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
+                      onBlur={(e) => validateEmailField(e.target.value)}
                       className={`mt-1 block text-black w-full border rounded-md py-2 px-3 focus:outline-none focus:ring-2 ${
                         errors.email 
                           ? 'border-red-500 focus:ring-red-500 focus:border-red-500' 
