@@ -2,12 +2,14 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import signupImg from "../../src/assets/images/bgimage.png";
+import { validateEmail } from "../utils/emailValidation";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [emailError, setEmailError] = useState("");
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -67,10 +69,24 @@ const Login = () => {
               type="email"
               required
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                setEmailError("");
+              }}
+              onBlur={(e) => {
+                const error = validateEmail(e.target.value);
+                setEmailError(error);
+              }}
               placeholder="Enter your email"
-              className="mt-1 w-full rounded-md border border-blue-300 p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={`mt-1 w-full rounded-md border p-2 focus:outline-none focus:ring-2 ${
+                emailError
+                  ? "border-red-500 focus:ring-red-500"
+                  : "border-blue-300 focus:ring-blue-500"
+              }`}
             />
+            {emailError && (
+              <p className="mt-1 text-sm text-red-600">{emailError}</p>
+            )}
           </div>
 
           {/* Password */}

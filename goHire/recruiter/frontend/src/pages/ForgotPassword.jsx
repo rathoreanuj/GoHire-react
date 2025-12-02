@@ -4,6 +4,7 @@ import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { sendOtp, verifyOtp, resetPassword, setEmail, setOtp, resetState } from '../store/slices/forgotPasswordSlice';
 import signupImg from '../assets/images/bgimage.png';
 import { CheckCircle, ArrowLeft } from 'lucide-react';
+import { validateEmail } from '../utils/emailValidation';
 
 const ForgotPassword = () => {
   const navigate = useNavigate();
@@ -15,6 +16,7 @@ const ForgotPassword = () => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [localError, setLocalError] = useState('');
+  const [emailError, setEmailError] = useState('');
 
   useEffect(() => {
     // Reset state when component unmounts
@@ -87,10 +89,24 @@ const ForgotPassword = () => {
           type="email"
           required
           value={localEmail}
-          onChange={(e) => setLocalEmail(e.target.value)}
+          onChange={(e) => {
+            setLocalEmail(e.target.value);
+            setEmailError("");
+          }}
+          onBlur={(e) => {
+            const error = validateEmail(e.target.value);
+            setEmailError(error);
+          }}
           placeholder="Enter your registered email"
-          className="w-full rounded-md border border-blue-300 p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className={`w-full rounded-md border p-2 focus:outline-none focus:ring-2 ${
+            emailError
+              ? "border-red-500 focus:ring-red-500"
+              : "border-blue-300 focus:ring-blue-500"
+          }`}
         />
+        {emailError && (
+          <p className="mt-1 text-sm text-red-600">{emailError}</p>
+        )}
         <p className="text-xs text-gray-600 mt-1">
           We'll send a 6-digit OTP to your email address
         </p>
