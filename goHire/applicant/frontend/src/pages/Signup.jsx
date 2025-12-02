@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import signupImg from "../assets/images/bgimage.png";
+import { validateEmail } from "../utils/emailValidation";
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -38,19 +39,8 @@ const Signup = () => {
     return "";
   };
 
-  const validateEmail = (value) => {
-    if (!value.trim()) {
-      return "Email is required";
-    }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(value)) {
-      return "Please enter a valid email address";
-    }
-    // Additional validation to prevent common invalid patterns
-    if (value.includes("..") || value.startsWith(".") || value.startsWith("@")) {
-      return "Please enter a valid email address";
-    }
-    return "";
+  const validateEmailField = (value) => {
+    return validateEmail(value);
   };
 
   const validatePhone = (value) => {
@@ -155,7 +145,7 @@ const Signup = () => {
         error = validateLastName(value);
         break;
       case "email":
-        error = validateEmail(value);
+        error = validateEmailField(value);
         break;
       case "phone":
         error = validatePhone(value);
@@ -187,7 +177,7 @@ const Signup = () => {
     const errors = {};
     errors.firstName = validateFirstName(formData.firstName);
     errors.lastName = validateLastName(formData.lastName);
-    errors.email = validateEmail(formData.email);
+    errors.email = validateEmailField(formData.email);
     errors.phone = validatePhone(formData.phone);
     errors.gender = validateGender(formData.gender);
     errors.password = validatePassword(formData.password);
