@@ -1,5 +1,6 @@
 const User = require('../models/user');
 const bcrypt = require('bcrypt');
+const { generateToken } = require('../config/jwt');
 
 const signup = async (req, res) => {
   const { firstName, lastName, email, phone, gender, password, confirmPassword } = req.body;
@@ -60,19 +61,18 @@ const login = async (req, res) => {
       return res.status(400).json({ message: 'Invalid email or password' });
     }
 
-    req.session.user = {
+    // Generate JWT token
+    const token = generateToken({
       id: user.userId,
       email: user.email,
       firstName: user.firstName,
-      lastName: user.lastName,
-      authenticated: true
-    };
-
-    await req.session.save();
+      lastName: user.lastName
+    });
     
     res.status(200).json({
       message: 'Login successful!',
       success: true,
+      token,
       user: {
         id: user.userId,
         email: user.email,
@@ -88,22 +88,19 @@ const login = async (req, res) => {
 };
 
 const logout = async (req, res) => {
-  req.session.destroy((err) => {
-    if (err) {
-      console.error('Error destroying session:', err);
-      return res.status(500).json({ message: 'Logout failed' });
-    }
-    res.json({ message: 'Logout successful', success: true });
-  });
+  // With JWT, logout is handled on the client side by removing the token
+  // Optionally, you can implement token blacklisting here if needed
+  res.json({ message: 'Logout successful', success: true });
 };
 
 const getCurrentUser = async (req, res) => {
   try {
-    if (!req.session.user?.authenticated) {
+    // User info is now attached to req by the auth middleware
+    if (!req.user) {
       return res.status(401).json({ message: 'Not authenticated' });
     }
 
-    const user = await User.findOne({ userId: req.session.user.id });
+    const user = await User.findOne({ userId: req.user.id });
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }

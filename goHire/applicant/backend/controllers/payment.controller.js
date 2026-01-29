@@ -26,7 +26,7 @@ const processPayment = async (req, res) => {
       upiName
     } = req.body;
 
-    const userId = req.session.user?.id;
+    const userId = req.user?.id;
 
     if (!userId) {
       return res.status(401).json({ error: 'Please login to Buy the Premium.' });
