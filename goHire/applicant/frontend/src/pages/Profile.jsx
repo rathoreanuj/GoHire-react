@@ -89,7 +89,7 @@ const Profile = () => {
     } finally {
       setLoading(false);
     }
-  }, [showToast]);
+  }, []); // Remove showToast dependency to prevent unnecessary re-renders
 
   useEffect(() => {
     fetchProfileData();
@@ -100,7 +100,7 @@ const Profile = () => {
         URL.revokeObjectURL(profileImageUrl);
       }
     };
-  }, [fetchProfileData]);
+  }, []); // Only run once on mount
 
   const handleProfileImageUpload = async (e) => {
     e.preventDefault();
@@ -163,6 +163,20 @@ const Profile = () => {
       setImageTimestamp(Date.now());
     } catch {
       showToast('Failed to delete image', 'error');
+    }
+  };
+
+  const handleViewResume = async () => {
+    try {
+      const resumeBlob = await profileService.getResume();
+      const resumeUrl = URL.createObjectURL(resumeBlob);
+      window.open(resumeUrl, '_blank');
+      
+      // Clean up the object URL after a short delay
+      setTimeout(() => URL.revokeObjectURL(resumeUrl), 1000);
+    } catch (error) {
+      console.error('Error viewing resume:', error);
+      showToast('Failed to load resume', 'error');
     }
   };
 
@@ -361,9 +375,6 @@ const Profile = () => {
                     >
                       {userData.firstName?.charAt(0).toUpperCase()}
                     </div>
-                    <div className="absolute -bottom-2 -right-2 bg-white rounded-full p-1 shadow-md">
-                      <div className="bg-green-500 rounded-full w-4 h-4 border-2 border-white"></div>
-                    </div>
                   </div>
 
                   <h2 className="text-xl font-bold text-gray-900">
@@ -404,7 +415,7 @@ const Profile = () => {
                           onClick={handleDeleteProfileImage}
                           className="px-3 py-2 bg-red-100 text-red-700 text-sm rounded-lg hover:bg-red-200 transition flex items-center justify-center"
                         >
-                          <i className="fas fa-trash mr-1"></i>
+                          <i className="fas fa-trash mr-1"></i> Del
                         </button>
                       )}
                     </div>
@@ -454,7 +465,7 @@ const Profile = () => {
                     <ProfileInfoCard icon="fa-envelope" label="Email Address" value={userData.email} />
                     <ProfileInfoCard icon="fa-phone" label="Phone Number" value={userData.phone} />
                     <ProfileInfoCard icon="fa-venus-mars" label="Gender" value={userData.gender} />
-                    <ProfileInfoCard icon="fa-calendar-alt" label="Member Since" value="25 March 2025" />
+                    <ProfileInfoCard icon="fa-calendar-alt" label="Member Since" value={userData.memberSince ? new Date(userData.memberSince).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : 'N/A'} />
                   </div>
                 </div>
               </div>
@@ -476,14 +487,12 @@ const Profile = () => {
                         <p className="text-gray-900 font-semibold">{resumeName}</p>
                       </div>
                       <div className="flex space-x-3">
-                        <a
-                          href={profileService.getResumeUrl()}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                        <button
+                          onClick={handleViewResume}
                           className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center"
                         >
                           <i className="fas fa-eye mr-2"></i> View
-                        </a>
+                        </button>
                         <button
                           onClick={handleDeleteResume}
                           className="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition flex items-center"
@@ -655,7 +664,7 @@ const Profile = () => {
                         </div>
                       </div>
                     ) : (
-                      <p className="text-lg text-gray-900 font-semibold">
+                      <p className="text-lg text-gray-900">
                         {additionalInfo.collegeName || 'Not specified'}
                       </p>
                     )}
@@ -704,7 +713,7 @@ const Profile = () => {
                         </div>
                       </div>
                     ) : (
-                      <p className="text-lg text-gray-900 font-semibold">
+                      <p className="text-lg text-gray-900">
                         {additionalInfo.skills || 'Not specified'}
                       </p>
                     )}
