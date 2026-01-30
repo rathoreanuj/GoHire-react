@@ -1,4 +1,5 @@
 const User = require('../models/user');
+const PremiumUser = require('../models/premium_user');
 const Applied_for_Jobs = require('../models/Applied_for_Jobs');
 const Applied_for_Internships = require('../models/Applied_for_Internships');
 const { getBucket } = require('../config/db');
@@ -19,6 +20,10 @@ const getProfile = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
+
+    // Check if user is premium
+    const premiumUser = await PremiumUser.findOne({ email: user.email });
+    const isPremium = !!premiumUser;
 
     let resumeName = null;
     if (user.resumeId) {
@@ -109,7 +114,8 @@ const getProfile = async (req, res) => {
         email: user.email,
         phone: user.phone,
         gender: user.gender,
-        profileImageId: user.profileImageId
+        profileImageId: user.profileImageId,
+        isPremium: isPremium
       },
       resumeName,
       applicationHistory
@@ -123,8 +129,41 @@ const getProfile = async (req, res) => {
 
 const updateProfile = async (req, res) => {
   try {
-    const { firstName, lastName, email, phone, gender, currentPassword, newPassword, confirmNewPassword } = req.body;
-    const userId = req.session.user.id;
+    
+    
+const {firstName, lastName, email, phone, gender, currentPassword, newPassword, confirmNewPassword,
+    // Additional fields
+    collegeName,
+    skills,
+    about,
+    linkedinProfile,
+    githubProfile,
+    portfolioWebsite,
+    workExperience,
+    achievements
+  } = req.body;
+  const userId = req.session.user.id;
+
+  // Prepare update object with all fields
+  const updateData = {
+    firstName, 
+    lastName, 
+    email, 
+    phone, 
+    gender
+  };
+
+  // Add additional fields if they are provided
+  if (collegeName !== undefined) updateData.collegeName = collegeName;
+  if (skills !== undefined) updateData.skills = skills;
+  if (about !== undefined) updateData.about = about;
+  if (linkedinProfile !== undefined) updateData.linkedinProfile = linkedinProfile;
+  if (githubProfile !== undefined) updateData.githubProfile = githubProfile;
+  if (portfolioWebsite !== undefined) updateData.portfolioWebsite = portfolioWebsite;
+  if (workExperience !== undefined) updateData.workExperience = workExperience;
+  if (achievements !== undefined) updateData.achievements = achievements;
+
+ 
 
     const updatedUser = await User.findOneAndUpdate(
       { userId },

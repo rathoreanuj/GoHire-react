@@ -13,11 +13,16 @@
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@mui/material": "^7.3.5",
+    "@reduxjs/toolkit": "^2.11.0",
+    "@stripe/react-stripe-js": "^3.10.0",
+    "@stripe/stripe-js": "^5.10.0",
     "axios": "^1.13.1",
     "formik": "^2.4.6",
+    "lucide-react": "^0.555.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-hook-form": "^7.65.0",
+    "react-redux": "^9.2.0",
     "react-router-dom": "^7.9.5"
   },
   "devDependencies": {

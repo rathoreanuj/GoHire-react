@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import profileService from "../services/profileService";
 import { useToast } from "../contexts/ToastContext";
@@ -10,18 +10,60 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
   const [imageTimestamp, setImageTimestamp] = useState(Date.now());
   const { showToast } = useToast();
+  
+  // Additional profile fields
+  const [additionalInfo, setAdditionalInfo] = useState({
+    collegeName: '',
+    skills: '',
+    about: '',
+    linkedinProfile: '',
+    githubProfile: '',
+    portfolioWebsite: '',
+    workExperience: '',
+    achievements: ''
+  });
+  const [isEditingField, setIsEditingField] = useState({
+    collegeName: false,
+    skills: false,
+    about: false,
+    linkedinProfile: false,
+    githubProfile: false,
+    portfolioWebsite: false,
+    workExperience: false,
+    achievements: false
+  });
+  const [tempValues, setTempValues] = useState({
+    collegeName: '',
+    skills: '',
+    about: '',
+    linkedinProfile: '',
+    githubProfile: '',
+    portfolioWebsite: '',
+    workExperience: '',
+    achievements: ''
+  });
 
-  useEffect(() => {
-    fetchProfileData();
-  }, []);
-
-  const fetchProfileData = async () => {
+  const fetchProfileData = useCallback(async () => {
     try {
       setLoading(true);
       const data = await profileService.getProfile();
       setUserData(data.user);
       setResumeName(data.resumeName);
       setApplicationHistory(data.applicationHistory || []);
+      
+      // Load additional info
+      const addInfo = {
+        collegeName: data.user?.collegeName || '',
+        skills: data.user?.skills || '',
+        about: data.user?.about || '',
+        linkedinProfile: data.user?.linkedinProfile || '',
+        githubProfile: data.user?.githubProfile || '',
+        portfolioWebsite: data.user?.portfolioWebsite || '',
+        workExperience: data.user?.workExperience || '',
+        achievements: data.user?.achievements || ''
+      };
+      setAdditionalInfo(addInfo);
+      setTempValues(addInfo);
     } catch (error) {
       console.error('Error fetching profile:', error);
       if (error.response?.status === 401) {
@@ -32,7 +74,11 @@ const Profile = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showToast]);
+
+  useEffect(() => {
+    fetchProfileData();
+  }, [fetchProfileData]);
 
   const handleProfileImageUpload = async (e) => {
     e.preventDefault();
@@ -151,6 +197,70 @@ const Profile = () => {
     }
   };
 
+  const handleEditField = (fieldName) => {
+    setIsEditingField(prev => ({ ...prev, [fieldName]: true }));
+    setTempValues(prev => ({ ...prev, [fieldName]: additionalInfo[fieldName] }));
+  };
+
+  const handleCancelEdit = (fieldName) => {
+    setIsEditingField(prev => ({ ...prev, [fieldName]: false }));
+    setTempValues(prev => ({ ...prev, [fieldName]: additionalInfo[fieldName] }));
+  };
+
+  const handleSaveField = async (fieldName) => {
+    // Validate URL fields
+    const urlFields = ['linkedinProfile', 'githubProfile', 'portfolioWebsite'];
+    if (urlFields.includes(fieldName) && tempValues[fieldName]) {
+      const urlValue = tempValues[fieldName].trim();
+      
+      // Check if it's a valid URL
+      if (!urlValue.startsWith('http://') && !urlValue.startsWith('https://')) {
+        showToast('Please enter a valid URL starting with http:// or https://', 'error');
+        return;
+      }
+
+      // Additional URL format validation
+      try {
+        new URL(urlValue);
+      } catch {
+        showToast('Please enter a valid URL format', 'error');
+        return;
+      }
+
+      // Specific domain validation for LinkedIn
+      if (fieldName === 'linkedinProfile' && !urlValue.includes('linkedin.com')) {
+        showToast('Please enter a valid LinkedIn URL (must contain linkedin.com)', 'error');
+        return;
+      }
+
+      // Specific domain validation for GitHub
+      if (fieldName === 'githubProfile' && !urlValue.includes('github.com')) {
+        showToast('Please enter a valid GitHub URL (must contain github.com)', 'error');
+        return;
+      }
+    }
+
+    try {
+      const updateData = {
+        ...userData,
+        [fieldName]: tempValues[fieldName]
+      };
+      
+      await profileService.updateProfile(updateData);
+      
+      setAdditionalInfo(prev => ({ ...prev, [fieldName]: tempValues[fieldName] }));
+      setIsEditingField(prev => ({ ...prev, [fieldName]: false }));
+      showToast(`${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)} updated successfully`, 'success');
+    } catch (error) {
+      showToast(`Failed to update ${fieldName}`, 'error');
+      console.error('Update error:', error);
+    }
+  };
+
+  const handleFieldChange = (fieldName, value) => {
+    setTempValues(prev => ({ ...prev, [fieldName]: value }));
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -183,6 +293,24 @@ const Profile = () => {
                 <div className="flex flex-col items-center">
                   {/* Profile Image */}
                   <div className="relative mb-4">
+                    {/* Premium Crown Icon */}
+                    {userData.isPremium && (
+                      <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 z-10">
+                        <div className="relative group">
+                          <div className="bg-gradient-to-r from-yellow-400 to-amber-500 text-white rounded-full p-2 shadow-lg">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
+                              <path d="M12 2L15 8.5L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L9 8.5L12 2Z" />
+                            </svg>
+                          </div>
+                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                            Premium Member
+                            <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
+                              <div className="border-4 border-transparent border-t-gray-900"></div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                     {userData.profileImageId ? (
                       <img
                         key={imageTimestamp}
@@ -445,6 +573,420 @@ const Profile = () => {
                       </Link>
                     </div>
                   )}
+                </div>
+              </div>
+
+              {/* Additional Information */}
+              <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
+                <div className="px-6 py-4">
+                  <h2 className="text-xl font-bold text-black flex items-center">
+                    <i className="fas fa-info-circle mr-3"></i> Additional Information
+                  </h2>
+                </div>
+                <div className="p-6 space-y-6">
+                  {/* College Name */}
+                  <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+                    <div className="flex items-start justify-between mb-2">
+                      <label className="flex items-center text-sm font-medium text-purple-700">
+                        <i className="fas fa-university mr-2"></i> College/University Name
+                      </label>
+                      {!isEditingField.collegeName && (
+                        <button
+                          onClick={() => handleEditField('collegeName')}
+                          className="text-purple-600 hover:text-purple-800 transition p-1 hover:bg-purple-100 rounded"
+                          title="Edit College Name"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                    {isEditingField.collegeName ? (
+                      <div className="space-y-3">
+                        <input
+                          type="text"
+                          value={tempValues.collegeName}
+                          onChange={(e) => handleFieldChange('collegeName', e.target.value)}
+                          className="w-full px-3 py-2 border border-purple-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900"
+                          placeholder="Enter your college/university name"
+                        />
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => handleSaveField('collegeName')}
+                            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition text-sm"
+                          >
+                            <i className="fas fa-check mr-1"></i> Save
+                          </button>
+                          <button
+                            onClick={() => handleCancelEdit('collegeName')}
+                            className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition text-sm"
+                          >
+                            <i className="fas fa-times mr-1"></i> Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-lg text-gray-900 font-semibold">
+                        {additionalInfo.collegeName || 'Not specified'}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Skills */}
+                  <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+                    <div className="flex items-start justify-between mb-2">
+                      <label className="flex items-center text-sm font-medium text-green-700">
+                        <i className="fas fa-code mr-2"></i> Skills
+                      </label>
+                      {!isEditingField.skills && (
+                        <button
+                          onClick={() => handleEditField('skills')}
+                          className="text-green-600 hover:text-green-800 transition p-1 hover:bg-green-100 rounded"
+                          title="Edit Skills"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                    {isEditingField.skills ? (
+                      <div className="space-y-3">
+                        <input
+                          type="text"
+                          value={tempValues.skills}
+                          onChange={(e) => handleFieldChange('skills', e.target.value)}
+                          className="w-full px-3 py-2 border border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-900"
+                          placeholder="e.g., JavaScript, React, Node.js, Python"
+                        />
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => handleSaveField('skills')}
+                            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-sm"
+                          >
+                            <i className="fas fa-check mr-1"></i> Save
+                          </button>
+                          <button
+                            onClick={() => handleCancelEdit('skills')}
+                            className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition text-sm"
+                          >
+                            <i className="fas fa-times mr-1"></i> Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-lg text-gray-900 font-semibold">
+                        {additionalInfo.skills || 'Not specified'}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* About */}
+                  <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+                    <div className="flex items-start justify-between mb-2">
+                      <label className="flex items-center text-sm font-medium text-blue-700">
+                        <i className="fas fa-user-edit mr-2"></i> About Me
+                      </label>
+                      {!isEditingField.about && (
+                        <button
+                          onClick={() => handleEditField('about')}
+                          className="text-blue-600 hover:text-blue-800 transition p-1 hover:bg-blue-100 rounded"
+                          title="Edit About"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                    {isEditingField.about ? (
+                      <div className="space-y-3">
+                        <textarea
+                          value={tempValues.about}
+                          onChange={(e) => handleFieldChange('about', e.target.value)}
+                          className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+                          placeholder="Write something about yourself..."
+                          rows="4"
+                        />
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => handleSaveField('about')}
+                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm"
+                          >
+                            <i className="fas fa-check mr-1"></i> Save
+                          </button>
+                          <button
+                            onClick={() => handleCancelEdit('about')}
+                            className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition text-sm"
+                          >
+                            <i className="fas fa-times mr-1"></i> Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-base text-gray-900 whitespace-pre-wrap">
+                        {additionalInfo.about || 'Not specified'}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* LinkedIn Profile */}
+                  <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+                    <div className="flex items-start justify-between mb-2">
+                      <label className="flex items-center text-sm font-medium text-blue-600">
+                        <i className="fab fa-linkedin mr-2"></i> LinkedIn Profile
+                      </label>
+                      {!isEditingField.linkedinProfile && (
+                        <button
+                          onClick={() => handleEditField('linkedinProfile')}
+                          className="text-blue-600 hover:text-blue-800 transition p-1 hover:bg-blue-100 rounded"
+                          title="Edit LinkedIn Profile"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                    {isEditingField.linkedinProfile ? (
+                      <div className="space-y-3">
+                        <input
+                          type="url"
+                          value={tempValues.linkedinProfile}
+                          onChange={(e) => handleFieldChange('linkedinProfile', e.target.value)}
+                          className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+                          placeholder="https://www.linkedin.com/in/yourprofile"
+                        />
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => handleSaveField('linkedinProfile')}
+                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm"
+                          >
+                            <i className="fas fa-check mr-1"></i> Save
+                          </button>
+                          <button
+                            onClick={() => handleCancelEdit('linkedinProfile')}
+                            className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition text-sm"
+                          >
+                            <i className="fas fa-times mr-1"></i> Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-base text-gray-900 break-all">
+                        {additionalInfo.linkedinProfile ? (
+                          <a href={additionalInfo.linkedinProfile} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                            {additionalInfo.linkedinProfile}
+                          </a>
+                        ) : 'Not specified'}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* GitHub Profile */}
+                  <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+                    <div className="flex items-start justify-between mb-2">
+                      <label className="flex items-center text-sm font-medium text-gray-800">
+                        <i className="fab fa-github mr-2"></i> GitHub Profile
+                      </label>
+                      {!isEditingField.githubProfile && (
+                        <button
+                          onClick={() => handleEditField('githubProfile')}
+                          className="text-gray-700 hover:text-gray-900 transition p-1 hover:bg-gray-100 rounded"
+                          title="Edit GitHub Profile"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                    {isEditingField.githubProfile ? (
+                      <div className="space-y-3">
+                        <input
+                          type="url"
+                          value={tempValues.githubProfile}
+                          onChange={(e) => handleFieldChange('githubProfile', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 text-gray-900"
+                          placeholder="https://github.com/yourusername"
+                        />
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => handleSaveField('githubProfile')}
+                            className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition text-sm"
+                          >
+                            <i className="fas fa-check mr-1"></i> Save
+                          </button>
+                          <button
+                            onClick={() => handleCancelEdit('githubProfile')}
+                            className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition text-sm"
+                          >
+                            <i className="fas fa-times mr-1"></i> Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-base text-gray-900 break-all">
+                        {additionalInfo.githubProfile ? (
+                          <a href={additionalInfo.githubProfile} target="_blank" rel="noopener noreferrer" className="text-gray-800 hover:underline">
+                            {additionalInfo.githubProfile}
+                          </a>
+                        ) : 'Not specified'}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Portfolio Website */}
+                  <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+                    <div className="flex items-start justify-between mb-2">
+                      <label className="flex items-center text-sm font-medium text-indigo-700">
+                        <i className="fas fa-globe mr-2"></i> Portfolio Website
+                      </label>
+                      {!isEditingField.portfolioWebsite && (
+                        <button
+                          onClick={() => handleEditField('portfolioWebsite')}
+                          className="text-indigo-600 hover:text-indigo-800 transition p-1 hover:bg-indigo-100 rounded"
+                          title="Edit Portfolio Website"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                    {isEditingField.portfolioWebsite ? (
+                      <div className="space-y-3">
+                        <input
+                          type="url"
+                          value={tempValues.portfolioWebsite}
+                          onChange={(e) => handleFieldChange('portfolioWebsite', e.target.value)}
+                          className="w-full px-3 py-2 border border-indigo-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900"
+                          placeholder="https://yourportfolio.com"
+                        />
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => handleSaveField('portfolioWebsite')}
+                            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition text-sm"
+                          >
+                            <i className="fas fa-check mr-1"></i> Save
+                          </button>
+                          <button
+                            onClick={() => handleCancelEdit('portfolioWebsite')}
+                            className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition text-sm"
+                          >
+                            <i className="fas fa-times mr-1"></i> Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-base text-gray-900 break-all">
+                        {additionalInfo.portfolioWebsite ? (
+                          <a href={additionalInfo.portfolioWebsite} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline">
+                            {additionalInfo.portfolioWebsite}
+                          </a>
+                        ) : 'Not specified'}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Work Experience */}
+                  <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+                    <div className="flex items-start justify-between mb-2">
+                      <label className="flex items-center text-sm font-medium text-orange-700">
+                        <i className="fas fa-briefcase mr-2"></i> Work Experience
+                      </label>
+                      {!isEditingField.workExperience && (
+                        <button
+                          onClick={() => handleEditField('workExperience')}
+                          className="text-orange-600 hover:text-orange-800 transition p-1 hover:bg-orange-100 rounded"
+                          title="Edit Work Experience"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                    {isEditingField.workExperience ? (
+                      <div className="space-y-3">
+                        <textarea
+                          value={tempValues.workExperience}
+                          onChange={(e) => handleFieldChange('workExperience', e.target.value)}
+                          className="w-full px-3 py-2 border border-orange-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900"
+                          placeholder="Brief summary of your work experience..."
+                          rows="4"
+                        />
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => handleSaveField('workExperience')}
+                            className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition text-sm"
+                          >
+                            <i className="fas fa-check mr-1"></i> Save
+                          </button>
+                          <button
+                            onClick={() => handleCancelEdit('workExperience')}
+                            className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition text-sm"
+                          >
+                            <i className="fas fa-times mr-1"></i> Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-base text-gray-900 whitespace-pre-wrap">
+                        {additionalInfo.workExperience || 'Not specified'}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Achievements/Awards */}
+                  <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+                    <div className="flex items-start justify-between mb-2">
+                      <label className="flex items-center text-sm font-medium text-yellow-700">
+                        <i className="fas fa-trophy mr-2"></i> Achievements/Awards
+                      </label>
+                      {!isEditingField.achievements && (
+                        <button
+                          onClick={() => handleEditField('achievements')}
+                          className="text-yellow-600 hover:text-yellow-800 transition p-1 hover:bg-yellow-100 rounded"
+                          title="Edit Achievements"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                    {isEditingField.achievements ? (
+                      <div className="space-y-3">
+                        <textarea
+                          value={tempValues.achievements}
+                          onChange={(e) => handleFieldChange('achievements', e.target.value)}
+                          className="w-full px-3 py-2 border border-yellow-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 text-gray-900"
+                          placeholder="List your notable achievements and awards..."
+                          rows="4"
+                        />
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => handleSaveField('achievements')}
+                            className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition text-sm"
+                          >
+                            <i className="fas fa-check mr-1"></i> Save
+                          </button>
+                          <button
+                            onClick={() => handleCancelEdit('achievements')}
+                            className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition text-sm"
+                          >
+                            <i className="fas fa-times mr-1"></i> Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-base text-gray-900 whitespace-pre-wrap">
+                        {additionalInfo.achievements || 'Not specified'}
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
 

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { companiesApi } from "../services/companiesApi";
 import Badge from "../components/ui/Badge";
-import { CheckCircle } from "lucide-react";
+import { CheckCircle, Eye } from "lucide-react";
 import { Pencil, Trash2 } from "lucide-react";
 
 const Companies = () => {
@@ -10,6 +10,7 @@ const Companies = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [deleteLoading, setDeleteLoading] = useState(null);
+  const [viewingProof, setViewingProof] = useState(null);
   const navigate = useNavigate();
 
   const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5000';
@@ -61,6 +62,38 @@ const Companies = () => {
   const getLogoUrl = (logoId) => {
     if (!logoId) return null;
     return `${API_BASE}/recruiter/logo/${logoId}`;
+  };
+
+  const getProofUrl = (proofId) => {
+    if (!proofId) return null;
+    return `${API_BASE}/recruiter/proof/${proofId}`;
+  };
+
+  const handleViewProof = async (proofId, companyName) => {
+    if (!proofId) {
+      alert('Proof document not available');
+      return;
+    }
+    
+    try {
+      const proofUrl = getProofUrl(proofId);
+      console.log('Opening proof document:', proofUrl);
+      
+      // Test if the URL is accessible
+      const response = await fetch(proofUrl, { method: 'HEAD' });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      setViewingProof({ url: proofUrl, companyName });
+    } catch (error) {
+      console.error('Error loading proof document:', error);
+      alert(`Failed to load proof document: ${error.message}. Please check your connection and try again.`);
+    }
+  };
+
+  const closeProofViewer = () => {
+    setViewingProof(null);
   };
 
   if (loading) {
@@ -197,6 +230,15 @@ const Companies = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex items-center justify-end gap-2">
+                          {company.proofDocumentId && (
+                            <button
+                              onClick={() => handleViewProof(company.proofDocumentId, company.companyName)}
+                              className="inline-flex items-center px-3 py-2 border border-green-300 rounded-md text-green-700 bg-white hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
+                              title="View Proof Document"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </button>
+                          )}
                           <button
                             onClick={() => navigate(`/companies/edit/${company._id}`)}
                             className="inline-flex items-center px-3 py-2 border border-blue-300 rounded-md text-blue-700 bg-white hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
@@ -223,6 +265,45 @@ const Companies = () => {
                 })}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* Proof Document Viewer Modal */}
+      {viewingProof && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4" onClick={closeProofViewer}>
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="flex justify-between items-center p-4 border-b">
+              <h3 className="text-lg font-semibold text-gray-800">
+                Proof Document - {viewingProof.companyName}
+              </h3>
+              <button
+                onClick={closeProofViewer}
+                className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
+              >
+                ×
+              </button>
+            </div>
+            <div className="flex-1 overflow-auto p-4">
+              {viewingProof.url ? (
+                <iframe
+                  src={viewingProof.url}
+                  className="w-full h-full min-h-[600px] border-0"
+                  title="Proof Document"
+                  onLoad={() => {
+                    console.log('Proof document loaded successfully');
+                  }}
+                  onError={(e) => {
+                    console.error('Error loading proof document:', e);
+                    alert('Failed to load proof document. Please check your connection and try again.');
+                  }}
+                />
+              ) : (
+                <div className="flex items-center justify-center h-96">
+                  <p className="text-gray-500">Loading proof document...</p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}

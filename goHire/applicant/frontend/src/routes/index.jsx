@@ -6,6 +6,7 @@ import ProtectedRoute from '../components-guard/ProtectedRoute';
 // Auth Pages
 import Login from '../pages/Login';
 import Signup from '../pages/Signup';
+import ForgotPassword from '../pages/ForgotPassword';
 
 // Main Pages
 import Home from '../pages/Home';
@@ -24,6 +25,7 @@ import ApplyInternship from '../pages/ApplyInternship';
 import SearchResults from '../pages/SearchResults';
 import Terms from '../pages/Terms';
 import Privacy from '../pages/Privacy';
+import Contact from '../pages/ContactUs';
 
 const PublicRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
@@ -54,6 +56,11 @@ const AppRoutes = () => {
             <Signup />
           </PublicRoute>
         } />
+        <Route path="/forgot-password" element={
+          <PublicRoute>
+            <ForgotPassword />
+          </PublicRoute>
+        } />
 
         {/* Public Routes */}
         <Route path="/" element={<MainLayout />}>
@@ -64,6 +71,7 @@ const AppRoutes = () => {
           <Route path="search" element={<SearchResults />} />
           <Route path="terms" element={<Terms />} />
           <Route path="privacy" element={<Privacy />} />
+          <Route path="contact" element={<Contact />} />
         </Route>
 
         {/* Protected Routes */}

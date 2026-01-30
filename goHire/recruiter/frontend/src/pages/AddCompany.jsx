@@ -31,8 +31,14 @@ const AddCompany = () => {
       if (values.logo) {
         formData.append('logo', values.logo);
       }
+      // Proof document is required
       if (values.proofDocument) {
         formData.append('proofDocument', values.proofDocument);
+      } else {
+        setError('Proof document is required');
+        setSubmitting(false);
+        setIsSubmitting(false);
+        return;
       }
 
       // Call the API

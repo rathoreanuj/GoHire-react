@@ -8,6 +8,8 @@ import ProtectedRoute from '../components-guard/ProtectedRoute';
 import Login from '../pages/Login';
 import Signup from '../pages/Signup';
 import ForgotPassword from '../pages/ForgotPassword';
+import Terms from '../pages/Terms';
+import Privacy from '../pages/Privacy';
 
 // Main Pages
 import Dashboard from '../pages/Dashboard';
@@ -60,6 +62,11 @@ const AppRoutes = () => {
               <ForgotPassword />
           </PublicRoute>
         } />
+
+        {/* Public Pages */}
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/privacy-policy" element={<Privacy />} />
 
         {/* Protected Routes */}
         <Route path="/" element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>

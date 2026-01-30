@@ -17,6 +17,7 @@ const recruiterRoutes = require('./routes/recruiter.routes');
 const applicationsRoutes = require('./routes/applications.routes');
 const internapplicantsRoutes = require('./routes/internapplicants.routes');
 const logoRoutes = require('./routes/logo.routes');
+const proofRoutes = require('./routes/proof.routes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -85,6 +86,7 @@ app.use('/api/recruiter', recruiterRoutes);
 app.use('/api/applications', applicationsRoutes);
 app.use('/api/internapplicants', internapplicantsRoutes);
 app.use('/recruiter/logo', logoRoutes);
+app.use('/recruiter/proof', proofRoutes);
 
 // Cron jobs for cleanup
 cron.schedule('0 0 * * *', () => {

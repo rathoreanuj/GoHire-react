@@ -45,7 +45,42 @@ const userSchema = new mongoose.Schema({
   profileImageId: { 
     type: mongoose.Schema.Types.ObjectId,
     ref: 'uploads.files'
-  }
+  },
+  // Additional profile fields
+  collegeName: {
+    type: String,
+    default: ''
+  },
+  skills: {
+    type: String,
+    default: ''
+  },
+  about: {
+    type: String,
+    default: ''
+  },
+  linkedinProfile: {
+    type: String,
+    default: ''
+  },
+  githubProfile: {
+    type: String,
+    default: ''
+  },
+  portfolioWebsite: {
+    type: String,
+    default: ''
+  },
+  workExperience: {
+    type: String,
+    default: ''
+  },
+  achievements: {
+    type: String,
+    default: ''
+  },
+  otp: { type: String, default: null },
+  otpExpiry: { type: Date, default: null }
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', userSchema);
