@@ -129,22 +129,26 @@ const getProfile = async (req, res) => {
 
 const updateProfile = async (req, res) => {
   try {
-    const { firstName, lastName, email, phone, gender, currentPassword, newPassword, confirmNewPassword } = req.body;
+    const {
+      firstName, 
+      lastName, 
+      email, 
+      phone, 
+      gender, 
+      currentPassword, 
+      newPassword, 
+      confirmNewPassword,
+      // Additional fields
+      collegeName,
+      skills,
+      about,
+      linkedinProfile,
+      githubProfile,
+      portfolioWebsite,
+      workExperience,
+      achievements
+    } = req.body;
     const userId = req.user.id;
-    
-    
-const {firstName, lastName, email, phone, gender, currentPassword, newPassword, confirmNewPassword,
-    // Additional fields
-    collegeName,
-    skills,
-    about,
-    linkedinProfile,
-    githubProfile,
-    portfolioWebsite,
-    workExperience,
-    achievements
-  } = req.body;
-  const userId = req.session.user.id;
 
   // Prepare update object with all fields
   const updateData = {
@@ -165,7 +169,6 @@ const {firstName, lastName, email, phone, gender, currentPassword, newPassword, 
   if (workExperience !== undefined) updateData.workExperience = workExperience;
   if (achievements !== undefined) updateData.achievements = achievements;
 
- 
 
     const updatedUser = await User.findOneAndUpdate(
       { userId },
