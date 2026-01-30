@@ -132,7 +132,7 @@ const SearchResults = () => {
                   type="button"
                   onClick={() => setActiveTab('internships')}
                   className={`px-4 py-2 text-sm font-medium rounded-r-lg ${activeTab === 'internships'
-                    ? 'bg-blue-600 text-white'
+                    ? 'bg-yellow-400 text-blue'
                     : 'bg-white text-blue-600 hover:bg-gray-50'
                     }`}
                 >
