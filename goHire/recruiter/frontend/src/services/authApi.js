@@ -45,7 +45,6 @@ export const authApi = {
     return `${API_BASE}/api/auth/profile-image/${userId}`;
   },
 
-  // Forgot password endpoints
   sendForgotPasswordOtp: async (email) => {
     const response = await api.post('/auth/forgot-password', { email });
     return response.data;
