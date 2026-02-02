@@ -5,7 +5,7 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const createPaymentIntent = async (req, res) => {
   try {
     const { amount, plan } = req.body;
-    const userId = req.session.user?.id;
+    const userId = req.user.id;
 
     if (!userId) {
       return res.status(401).json({ error: 'Please login to buy Premium.' });
@@ -50,7 +50,7 @@ const getPaymentPage = async (req, res) => {
 const processPayment = async (req, res) => {
   try {
     const { paymentIntentId, plan, amount } = req.body;
-    const userId = req.session.user?.id;
+    const userId = req.user.id;
 
     if (!userId) {
       return res.status(401).json({ error: 'Please login to Buy the Premium.' });
