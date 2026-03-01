@@ -504,6 +504,62 @@ const getLogo = async (req, res) => {
   }
 };
 
+const getDashboardStats = async (req, res) => {
+  try {
+    const userId = req.user?.id || req.user?.userId;
+    if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+    const [appliedJobs, appliedInternships] = await Promise.all([
+      Applied_for_Jobs.find({ userId }),
+      Applied_for_Internships.find({ userId }),
+    ]);
+
+    const totalJobs = appliedJobs.length;
+    const totalInternships = appliedInternships.length;
+    const totalApplications = totalJobs + totalInternships;
+
+    const allApplications = [...appliedJobs, ...appliedInternships];
+
+    const selected = allApplications.filter((a) => a.isSelected).length;
+    const rejected = allApplications.filter((a) => !a.isSelected && a.isRejected).length;
+    const pending = allApplications.filter((a) => !a.isSelected && !a.isRejected).length;
+
+    const responseRate =
+      totalApplications > 0
+        ? Math.round(((selected + rejected) / totalApplications) * 100)
+        : 0;
+
+    // Build monthly timeline for the last 12 months
+    const now = new Date();
+    const monthlyData = {};
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      monthlyData[key] = 0;
+    }
+
+    allApplications.forEach((app) => {
+      const date = new Date(app.AppliedAt || app.createdAt);
+      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+      if (key in monthlyData) monthlyData[key]++;
+    });
+
+    res.json({
+      totalApplications,
+      totalJobs,
+      totalInternships,
+      selected,
+      rejected,
+      pending,
+      responseRate,
+      monthly: monthlyData,
+    });
+  } catch (err) {
+    console.error("Error fetching dashboard stats:", err);
+    res.status(500).json({ error: "Server Error" });
+  }
+};
+
 module.exports = {
   getJobs,
   getInternships,
@@ -518,4 +574,5 @@ module.exports = {
   getAppliedJobs,
   getAppliedInternships,
   getLogo,
+  getDashboardStats,
 };
