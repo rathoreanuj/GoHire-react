@@ -40,5 +40,8 @@ router.get('/applied-internships', requireAuth, applicantController.getAppliedIn
 // Proxy logo
 router.get('/logo/:logoId', applicantController.getLogo);
 
+// Dashboard stats
+router.get('/dashboard/stats', requireAuth, applicantController.getDashboardStats);
+
 module.exports = router;
 

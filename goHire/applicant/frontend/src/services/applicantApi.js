@@ -72,5 +72,10 @@ export const applicantApi = {
     const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3000';
     return `${API_BASE}/api/applicant/logo/${logoId}`;
   },
+
+  getDashboardStats: async () => {
+    const response = await api.get('/applicant/dashboard/stats');
+    return response.data;
+  },
 };
 
