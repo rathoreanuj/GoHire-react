@@ -104,6 +104,11 @@ soap.listen(app, '/wsdl', premiumService, wsdl).on('request', (xml) => {
   console.log("SOAP REQUEST:\n", xml);
 });
 
+// Import Swagger configuration
+const swaggerSetup = require('./swagger');
+
+// Setup Swagger API documentation
+swaggerSetup(app);
 
 app.listen(PORT, () => {
   console.log(`[Admin] Server running on http://localhost:${PORT}`);
