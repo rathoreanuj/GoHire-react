@@ -36,7 +36,7 @@
  *     summary: Get all companies
  *     tags: [Companies]
  *     security:
- *       - bearerAuth: []
+ *       - cookieAuth: []
  *     responses:
  *       200:
  *         description: List of companies
@@ -56,7 +56,7 @@
  *     summary: Get companies awaiting verification
  *     tags: [Companies]
  *     security:
- *       - bearerAuth: []
+ *       - cookieAuth: []
  *     responses:
  *       200:
  *         description: List of companies awaiting verification
@@ -76,7 +76,7 @@
  *     summary: Verify a company
  *     tags: [Companies]
  *     security:
- *       - bearerAuth: []
+ *       - cookieAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -98,6 +98,56 @@
  *                   type: string
  *                 company:
  *                   $ref: '#/components/schemas/Company'
+ *       404:
+ *         description: Company not found
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Internal server error
+ *
+ * /api/companies/{id}:
+ *   get:
+ *     summary: Get company by ID
+ *     tags: [Companies]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Company ID
+ *     responses:
+ *       200:
+ *         description: Company data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Company'
+ *       404:
+ *         description: Company not found
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Internal server error
+ *   delete:
+ *     summary: Delete company
+ *     tags: [Companies]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Company ID
+ *     responses:
+ *       200:
+ *         description: Company deleted successfully
+ *       400:
+ *         description: Invalid ID format
  *       404:
  *         description: Company not found
  *       401:

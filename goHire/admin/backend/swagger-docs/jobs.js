@@ -45,7 +45,7 @@
  *     summary: Get all jobs
  *     tags: [Jobs]
  *     security:
- *       - bearerAuth: []
+ *       - cookieAuth: []
  *     responses:
  *       200:
  *         description: List of jobs
@@ -65,7 +65,7 @@
  *     summary: Get job by ID
  *     tags: [Jobs]
  *     security:
- *       - bearerAuth: []
+ *       - cookieAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -90,7 +90,7 @@
  *     summary: Delete job
  *     tags: [Jobs]
  *     security:
- *       - bearerAuth: []
+ *       - cookieAuth: []
  *     parameters:
  *       - in: path
  *         name: id

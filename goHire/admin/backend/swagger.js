@@ -17,17 +17,17 @@ const swaggerOptions = {
     ],
     components: {
       securitySchemes: {
-        bearerAuth: {
-          type: 'http',
-          scheme: 'bearer',
-          bearerFormat: 'JWT',
-          description: 'Enter your Bearer token for authentication. Example: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9... (replace with your actual token)',
+        cookieAuth: {
+          type: 'apiKey',
+          in: 'cookie',
+          name: 'connect.sid',
+          description: 'Session cookie set after successful /api/auth/login + /api/auth/verify-2fa flow.',
         },
       },
     },
     security: [
       {
-        bearerAuth: [],
+        cookieAuth: [],
       },
     ],
   },

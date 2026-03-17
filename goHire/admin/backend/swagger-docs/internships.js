@@ -45,7 +45,7 @@
  *     summary: Get all internships
  *     tags: [Internships]
  *     security:
- *       - bearerAuth: []
+ *       - cookieAuth: []
  *     responses:
  *       200:
  *         description: List of internships
@@ -65,7 +65,7 @@
  *     summary: Get internship by ID
  *     tags: [Internships]
  *     security:
- *       - bearerAuth: []
+ *       - cookieAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -90,7 +90,7 @@
  *     summary: Delete internship
  *     tags: [Internships]
  *     security:
- *       - bearerAuth: []
+ *       - cookieAuth: []
  *     parameters:
  *       - in: path
  *         name: id
