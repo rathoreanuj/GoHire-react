@@ -5,7 +5,7 @@
  *     summary: Get premium users
  *     tags: [Admin]
  *     security:
- *       - bearerAuth: []
+ *       - cookieAuth: []
  *     responses:
  *       200:
  *         description: Premium users fetched successfully
@@ -17,7 +17,7 @@
  *     summary: Get company proof document by proof file ID
  *     tags: [Admin]
  *     security:
- *       - bearerAuth: []
+ *       - cookieAuth: []
  *     parameters:
  *       - in: path
  *         name: proofId

@@ -36,7 +36,7 @@
  *     summary: Get all companies
  *     tags: [Companies]
  *     security:
- *       - bearerAuth: []
+ *       - cookieAuth: []
  *     responses:
  *       200:
  *         description: List of companies
@@ -56,7 +56,7 @@
  *     summary: Get companies awaiting verification
  *     tags: [Companies]
  *     security:
- *       - bearerAuth: []
+ *       - cookieAuth: []
  *     responses:
  *       200:
  *         description: List of companies awaiting verification
@@ -76,7 +76,7 @@
  *     summary: Verify a company
  *     tags: [Companies]
  *     security:
- *       - bearerAuth: []
+ *       - cookieAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -110,7 +110,7 @@
  *     summary: Get company by ID
  *     tags: [Companies]
  *     security:
- *       - bearerAuth: []
+ *       - cookieAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -135,7 +135,7 @@
  *     summary: Delete company
  *     tags: [Companies]
  *     security:
- *       - bearerAuth: []
+ *       - cookieAuth: []
  *     parameters:
  *       - in: path
  *         name: id

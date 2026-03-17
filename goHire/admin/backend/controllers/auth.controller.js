@@ -35,12 +35,14 @@ const login = async (req, res) => {
     user.otpExpiry = otpExpiry;
 
     try {
-      await sendOtpEmail(email, otp);
+      const otpDeliveryResult = await sendOtpEmail(email, otp);
       res.json({
         success: true,
         require2FA: true,
         email: user.email,
-        message: 'OTP sent to your email for 2-factor authentication'
+        message: otpDeliveryResult?.delivered
+          ? 'OTP sent to your email for 2-factor authentication'
+          : 'OTP generated for 2-factor authentication. Check server console in local/dev mode.'
       });
     } catch (emailError) {
       console.error('2FA OTP email error:', emailError);

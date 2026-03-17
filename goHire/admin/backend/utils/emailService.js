@@ -19,9 +19,16 @@ if (isEmailConfigured()) {
 const sendOtpEmail = async (email, otp) => {
     // Check if EmailJS is properly configured
     if (!isEmailConfigured()) {
-        const error = new Error('EmailJS is not properly configured. Please check your environment variables.');
         console.warn('⚠️ OTP for ' + email + ': ' + otp); // For testing when not configured
-        throw error;
+        if (process.env.NODE_ENV === 'production') {
+            throw new Error('EmailJS is not properly configured. Please check your environment variables.');
+        }
+
+        return {
+            success: true,
+            delivered: false,
+            message: 'EmailJS is not configured. OTP logged to server console for local testing.'
+        };
     }
 
     const serviceId = process.env.EMAILJS_SERVICE_ID;
@@ -64,7 +71,7 @@ const sendOtpEmail = async (email, otp) => {
             res.on('end', () => {
                 if (res.statusCode === 200) {
                     console.log('✅ OTP email sent successfully to:', email);
-                    resolve({ success: true });
+                    resolve({ success: true, delivered: true });
                 } else {
                     console.error('❌ EmailJS Error:', responseData);
                     reject(new Error(`EmailJS Error ${res.statusCode}: ${responseData}`));

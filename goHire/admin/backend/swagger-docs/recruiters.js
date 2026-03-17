@@ -24,7 +24,7 @@
  *     summary: Get all recruiters
  *     tags: [Recruiters]
  *     security:
- *       - bearerAuth: []
+ *       - cookieAuth: []
  *     responses:
  *       200:
  *         description: List of recruiters
@@ -44,7 +44,7 @@
  *     summary: Get recruiter by ID
  *     tags: [Recruiters]
  *     security:
- *       - bearerAuth: []
+ *       - cookieAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -69,7 +69,7 @@
  *     summary: Delete recruiter
  *     tags: [Recruiters]
  *     security:
- *       - bearerAuth: []
+ *       - cookieAuth: []
  *     parameters:
  *       - in: path
  *         name: id

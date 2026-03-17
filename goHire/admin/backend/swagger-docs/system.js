@@ -25,7 +25,7 @@
  *     summary: Get admin dashboard stats
  *     tags: [System]
  *     security:
- *       - bearerAuth: []
+ *       - cookieAuth: []
  *     responses:
  *       200:
  *         description: Dashboard counts for jobs, internships, companies, and applicants

@@ -27,7 +27,7 @@
  *     summary: Get all applicants
  *     tags: [Applicants]
  *     security:
- *       - bearerAuth: []
+ *       - cookieAuth: []
  *     responses:
  *       200:
  *         description: List of applicants
@@ -45,7 +45,7 @@
  *     summary: Get applicant by ID
  *     tags: [Applicants]
  *     security:
- *       - bearerAuth: []
+ *       - cookieAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -68,7 +68,7 @@
  *     summary: Delete applicant
  *     tags: [Applicants]
  *     security:
- *       - bearerAuth: []
+ *       - cookieAuth: []
  *     parameters:
  *       - in: path
  *         name: id
