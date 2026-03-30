@@ -85,6 +85,14 @@ app.get("/api/health", (req, res) => {
   res.json({ ok: true, service: "admin", port: PORT });
 });
 
+// Disable caching for API endpoints (prevents 304 Not Modified responses)
+app.use("/api", (req, res, next) => {
+  res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate, private");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
+  next();
+});
+
 // API Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/applicants", applicantsRoutes);

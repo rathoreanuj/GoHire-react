@@ -77,6 +77,14 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 // GraphQL Playground
 app.get('/graphql-playground', playgroundMiddleware({ endpoint: '/api/graphql' }));
 
+// Disable caching for API endpoints (prevents 304 Not Modified responses)
+app.use('/api', (req, res, next) => {
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, private');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  next();
+});
+
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/recruiter', recruiterRoutes);

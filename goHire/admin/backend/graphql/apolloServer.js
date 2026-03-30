@@ -81,6 +81,16 @@ function setupGraphQL(app) {
     res.send(graphiqlHtml);
   });
   
+  app.use('/graphql', (req, res, next) => {
+    if (req.method === 'POST') {
+      const authHeader = req.headers.authorization;
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'Unauthorized: Missing or invalid Bearer token' });
+      }
+    }
+    next();
+  });
+
   // Handle POST requests - GraphQL execution
   app.use('/graphql', createHandler({
     schema: schema,
