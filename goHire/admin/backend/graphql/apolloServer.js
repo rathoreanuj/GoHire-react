@@ -1,38 +1,94 @@
-const { ApolloServer } = require('apollo-server-express');
+const { createHandler } = require('graphql-http/lib/use/express');
+const { buildSchema } = require('graphql');
 const typeDefs = require('./typeDefs');
 const resolvers = require('./resolvers');
 
-async function setupGraphQL(app) {
-  const server = new ApolloServer({
-    typeDefs,
-    resolvers,
-    context: ({ req }) => {
-      // You can add authentication context here if needed
-      return { req };
-    },
-    introspection: true, // Enable introspection for development
-    plugins: [
-      {
-        requestDidStart() {
-          return {
-            didResolveOperation({ request }) {
-              // Optional: Log GraphQL operations
-              console.log('GraphQL Operation:', request.operationName);
-            },
-          };
-        },
-      },
-    ],
-  });
+// Build GraphQL schema from type definitions
+const schema = buildSchema(typeDefs);
 
-  await server.start();
-  server.applyMiddleware({
-    app,
-    path: '/graphql',
-    bodyParserConfig: false,
+// Flatten resolvers for rootValue (needed for buildSchema approach)
+const flatResolvers = {
+  // Query resolvers
+  applicants: resolvers.Query.applicants,
+  applicant: resolvers.Query.applicant,
+  recruiters: resolvers.Query.recruiters,
+  recruiter: resolvers.Query.recruiter,
+  companies: resolvers.Query.companies,
+  companiesByVerificationStatus: resolvers.Query.companiesByVerificationStatus,
+  company: resolvers.Query.company,
+  batchQuery: resolvers.Query.batchQuery,
+  stats: resolvers.Query.stats,
+  
+  // Mutation resolvers
+  verifyCompany: resolvers.Mutation?.verifyCompany,
+  deleteCompany: resolvers.Mutation?.deleteCompany,
+  deleteApplicant: resolvers.Mutation?.deleteApplicant,
+  deleteRecruiter: resolvers.Mutation?.deleteRecruiter,
+};
+
+// GraphiQL HTML
+const graphiqlHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+  <title>GraphiQL</title>
+  <style>
+    body {
+      height: 100%;
+      margin: 0;
+      width: 100%;
+      overflow: hidden;
+    }
+    #graphiql {
+      height: 100vh;
+    }
+  </style>
+  <script
+    crossorigin
+    src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"
+  ></script>
+  <script
+    crossorigin
+    src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"
+  ></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/graphiql@3/graphiql.min.css" />
+</head>
+<body>
+  <div id="graphiql">Loading...</div>
+  <script
+    src="https://cdn.jsdelivr.net/npm/graphiql@3/graphiql.min.js"
+    type="application/javascript"
+  ></script>
+  <script>
+    ReactDOM.render(
+      React.createElement(GraphiQL, {
+        fetcher: GraphiQL.createFetcher({
+          url: '/graphql',
+        }),
+        defaultQuery: '# Welcome to GraphiQL\\n# Paste your query here\\n{\\n  stats {\\n    totalApplicants\\n    totalRecruiters\\n    totalCompanies\\n  }\\n}',
+      }),
+      document.getElementById('graphiql'),
+    );
+  </script>
+</body>
+</html>
+`;
+
+function setupGraphQL(app) {
+  // Handle GET requests - serve GraphiQL UI
+  app.get('/graphql', (req, res) => {
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(graphiqlHtml);
   });
   
-  return server;
+  // Handle POST requests - GraphQL execution
+  app.use('/graphql', createHandler({
+    schema: schema,
+    rootValue: flatResolvers,
+  }));
+  
+  console.log('GraphQL endpoint configured at /graphql');
+  console.log('GraphiQL UI available at http://localhost:9000/graphql');
 }
 
 module.exports = setupGraphQL;
