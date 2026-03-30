@@ -112,9 +112,7 @@ const swaggerSetup = require('./swagger');
 swaggerSetup(app);
 
 // Setup GraphQL
-setupGraphQL(app).then(() => {
-  console.log('GraphQL server started at http://localhost:' + PORT + '/graphql');
-});
+setupGraphQL(app);
 
 app.listen(PORT, () => {
   console.log(`[Admin] Server running on http://localhost:${PORT}`);
