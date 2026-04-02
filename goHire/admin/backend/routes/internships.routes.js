@@ -1,15 +1,15 @@
 const express = require('express');
 const router = express.Router();
 const internshipsController = require('../controllers/internships.controller');
+const { isAdmin } = require('../middleware/auth');
 
 // Get all internships
-router.get('/', internshipsController.getInternships);
+router.get('/', isAdmin, internshipsController.getInternships);
 
 // Get internship by ID
-router.get('/:id', internshipsController.getInternshipById);
+router.get('/:id', isAdmin, internshipsController.getInternshipById);
 
 // Delete internship
-router.delete('/:id', internshipsController.deleteInternship);
+router.delete('/:id', isAdmin, internshipsController.deleteInternship);
 
 module.exports = router;
-
