@@ -31,7 +31,7 @@ const CompanyForm = ({ initialValues, onSubmit, isSubmitting, submitButtonText =
           return ['http:', 'https:'].includes(url.protocol);
         } catch {
           // If URL constructor fails, try regex validation
-          const urlRegex = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
+          const urlRegex = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/;
           return urlRegex.test(value);
         }
       })
