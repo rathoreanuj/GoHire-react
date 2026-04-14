@@ -465,7 +465,7 @@ const Home = () => {
                 through GoHire.
               </p>
               <Link
-                to="http://localhost:5174/login"
+                to="/login"
                 className="bg-white text-blue-700 hover:bg-yellow-400 font-bold py-3 px-8 rounded-full transition-all duration-300 inline-block hover:shadow-lg transform hover:-translate-y-1"
               >
                 Get Started Now
