@@ -6,7 +6,9 @@ let bucket;
 
 const connectDB = async () => {
   try {
-    const mongoURI = process.env.MONGO_URI || 'mongodb://localhost:27017/applicant_db';
+    const mongoURI = process.env.NODE_ENV === 'test' 
+      ? process.env.MONGO_URI_TEST 
+      : (process.env.MONGO_URI || 'mongodb://localhost:27017/applicant_db');
     const conn = await mongoose.connect(mongoURI);
 
     console.log(`✅ Applicant MongoDB Connected: ${conn.connection.host}`);
