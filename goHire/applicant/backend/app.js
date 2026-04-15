@@ -66,7 +66,9 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Connect to database
-connectDB();
+if (process.env.NODE_ENV !== 'test') {
+  connectDB();
+}
 
 // Disable caching for API endpoints (prevents 304 Not Modified responses)
 app.use('/api', (req, res, next) => {

@@ -86,8 +86,10 @@ app.use(
 );
 
 // Connect to databases
-connectDB();
-backfillApplicantCompanyName();
+if (process.env.NODE_ENV !== 'test') {
+  connectDB();
+  backfillApplicantCompanyName();
+}
 
 // Health check
 app.get("/api/health", (req, res) => {

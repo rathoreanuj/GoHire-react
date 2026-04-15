@@ -60,10 +60,12 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Connect to databases
-connectDB();
+if (process.env.NODE_ENV !== 'test') {
+  connectDB();
+}
 
 // Connect to applicant database if URI is provided (async, don't await to not block server start)
-if (process.env.MONGO_URI_APPLICANT) {
+if (process.env.MONGO_URI_APPLICANT && process.env.NODE_ENV !== 'test') {
   const { connectApplicantDB } = require('./config/applicantDb');
   (async () => {
     await connectApplicantDB();
