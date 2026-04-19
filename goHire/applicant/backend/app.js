@@ -20,6 +20,8 @@ const filesRoutes = require('./routes/files.routes');
 const uploadRoutes = require('./routes/upload.routes');
 const searchRoutes = require('./routes/search.routes');
 
+const redis = require('./config/redis');
+
 const app = express();
 const PORT = 3000; // Hardcoded port
 
@@ -124,6 +126,17 @@ app.use(
 app.get('/', (req, res) => {
   res.send('Applicant service is running');
 })
+
+app.get('/api/redis-test', async (req, res) => {
+  try {
+    await redis.set('test_key', 'Hello Redis!');    
+    const value = await redis.get('test_key');
+    res.json({ success: true, value });
+  } catch (err) {
+    console.error('Redis test error:', err);
+    res.status(500).json({ success: false, error: 'Redis test failed' });
+  }
+});
 
 // Error handler middleware
 app.use(errorHandler);
