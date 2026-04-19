@@ -12,7 +12,7 @@ const invalidateJobCache = async (redis) => {
   }
 };
 
-const invalidateInternshipCache = async () => {
+const invalidateInternshipCache = async (redis) => {
   try {
     const keys = await redis.keys("internships:*");
 
