@@ -18,6 +18,18 @@ const jobSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
+jobSchema.index({
+  jobLocation: 1,
+  jobSalary: 1,
+  jobExperience: 1,
+  createdAt: -1
+});
+
+jobSchema.index({
+  jobTitle: "text",
+  jobDescription: "text",
+});
+
 module.exports = (connection) => {
   return connection.models.Job || connection.model('Job', jobSchema);
 };

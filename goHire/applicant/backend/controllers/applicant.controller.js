@@ -55,7 +55,7 @@ const getJobs = async (req, res) => {
       }
 
       location = location.trim();
-
+      
       if (location.length === 0 || location.length > 50) {
         return res.status(400).json({ error: "Invalid location length" });
       }
@@ -77,6 +77,13 @@ const getJobs = async (req, res) => {
     const pageSize = 5;
     const filterCriteria = {};
 
+    if (location) {
+      filterCriteria.jobLocation = {
+        $regex: "^" + location,
+        $options: "i",
+      };
+    }
+
     if (salaryMin !== undefined) {
       filterCriteria.jobSalary = { $gte: salaryMin };
     }
@@ -87,29 +94,26 @@ const getJobs = async (req, res) => {
       if (expMax !== undefined) filterCriteria.jobExperience.$lte = expMax;
     }
 
-    if (location) {
-      filterCriteria.jobLocation = {
-        $regex: location,
-        $options: "i",
-      };
-    }
-
     const jobs = await JobFindConn.aggregate([
       { $match: filterCriteria },
       { $sort: { createdAt: -1 } },
-      {
-        $lookup: {
-          from: "companies",
-          localField: "jobCompany",
-          foreignField: "_id",
-          as: "jobCompany",
-        },
-      },
-      { $unwind: { path: "$jobCompany", preserveNullAndEmptyArrays: true } },
+      
       {
         $facet: {
           metaData: [{ $count: "totalcount" }],
-          data: [{ $skip: (page - 1) * pageSize }, { $limit: pageSize }],
+          data: [
+            { $skip: (page - 1) * pageSize }, 
+            { $limit: pageSize },
+            {
+              $lookup: {
+                from: "companies",
+                localField: "jobCompany",
+                foreignField: "_id",
+                as: "jobCompany",
+              },
+            },
+            { $unwind: { path: "$jobCompany", preserveNullAndEmptyArrays: true } },
+          ],
         },
       },
     ]);
@@ -197,6 +201,13 @@ const getInternships = async (req, res) => {
 
     const pageSize = 5;
     const filterCriteria = {};
+    
+    if (location) {
+      filterCriteria.intLocation = {
+        $regex: location,
+        $options: "i",
+      };
+    }
 
     if (stipendMin !== undefined) {
       filterCriteria.intStipend = { $gte: stipendMin * 1000 };
@@ -210,29 +221,27 @@ const getInternships = async (req, res) => {
         filterCriteria.intExperience.$lte = durationMax;
     }
 
-    if (location) {
-      filterCriteria.intLocation = {
-        $regex: location,
-        $options: "i",
-      };
-    }
 
     const internships = await InternshipFindConn.aggregate([
       { $match: filterCriteria },
       { $sort: { createdAt: -1 } },
-      {
-        $lookup: {
-          from: "companies",
-          localField: "intCompany",
-          foreignField: "_id",
-          as: "intCompany",
-        },
-      },
-      { $unwind: { path: "$intCompany", preserveNullAndEmptyArrays: true } },
+      
       {
         $facet: {
           metaData: [{ $count: "totalcount" }],
-          data: [{ $skip: (page - 1) * pageSize }, { $limit: pageSize }],
+          data: [
+            { $skip: (page - 1) * pageSize },
+            { $limit: pageSize },
+            {
+              $lookup: {
+                from: "companies",
+                localField: "intCompany",
+                foreignField: "_id",
+                as: "intCompany",
+              },
+            },
+            { $unwind: { path: "$intCompany", preserveNullAndEmptyArrays: true } },
+          ],
         },
       },
     ]);

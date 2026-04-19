@@ -18,6 +18,18 @@ const internshipSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
+internshipSchema.index({
+  intLocation: 1,
+  intStipend: 1,
+  intDuration: 1,
+  createdAt: -1
+});
+
+internshipSchema.index({
+  intTitle: "text",
+  intDescription: "text",
+});
+
 module.exports = (connection) => {
   return connection.model('Internship', internshipSchema, "internships");
 };
