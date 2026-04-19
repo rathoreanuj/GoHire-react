@@ -5,8 +5,6 @@ import JobCard from '../components/jobs/JobCard';
 import InternshipCard from '../components/internships/InternshipCard';
 import JobFilters from '../components/jobs/JobFilters';
 import InternshipFilters from '../components/internships/InternshipFilters';
-import { highlightText } from '../utils/highlightText';
-
 /** Apply same filter logic as backend: salaryMin (LPA), expMin/expMax (years), location */
 function filterJobs(jobsList, filters) {
   if (!jobsList?.length) return [];
@@ -65,65 +63,6 @@ function filterInternships(internshipsList, filters) {
   });
 }
 
-// Check if a job card should be included based on the search query
-function matchesJobQuery(job, query) {
-  if (!query) return true;
-  const q = String(query).toLowerCase().trim();
-  if (!q) return true;
-
-  const fields = [
-    job.jobTitle,
-    job.jobType,
-    job.jobLocation,
-    job.jobExperience,
-    job.noofPositions,
-    job.jobSalary,
-    job.jobExpiry,
-    job.jobDescription,
-    job.jobRequirements,
-    job.jobCompany?.companyName,
-  ];
-
-  let combined = fields
-    .filter((v) => v !== undefined && v !== null)
-    .map((v) => String(v).toLowerCase())
-    .join(' ');
-
-  // Explicitly add a label containing "lpa" when salary is present
-  if (job.jobSalary !== undefined && job.jobSalary !== null) {
-    combined += ` ${String(job.jobSalary).toLowerCase()} lpa`;
-  }
-
-  return combined.includes(q);
-}
-
-// Check if an internship card should be included based on the search query
-function matchesInternshipQuery(internship, query) {
-  if (!query) return true;
-  const q = String(query).toLowerCase().trim();
-  if (!q) return true;
-
-  const fields = [
-    internship.intTitle,
-    internship.intLocation,
-    internship.intDuration,
-    internship.intExperience,
-    internship.intPositions,
-    internship.intStipend,
-    internship.intExpiry,
-    internship.intDescription,
-    internship.intRequirements,
-    internship.intCompany?.companyName,
-  ];
-
-  const combined = fields
-    .filter((v) => v !== undefined && v !== null)
-    .map((v) => String(v).toLowerCase())
-    .join(' ');
-
-  return combined.includes(q);
-}
-
 const SearchResults = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -135,31 +74,22 @@ const SearchResults = () => {
   const [activeTab, setActiveTab] = useState('jobs');
   const [jobFilters, setJobFilters] = useState({});
   const [internshipFilters, setInternshipFilters] = useState({});
+  /** From API when backend includes it (`solr` | `fuse`); null if older server omits it */
+  const [searchEngine, setSearchEngine] = useState(null);
 
   const query = useMemo(() => {
     const params = new URLSearchParams(location.search);
     return params.get('q') || location.state?.query || '';
   }, [location.search, location.state]);
 
-  const searchFilteredJobs = useMemo(
-    () => (!query ? jobs : jobs.filter((job) => matchesJobQuery(job, query))),
-    [jobs, query]
-  );
-
-  const searchFilteredInternships = useMemo(
-    () =>
-      (!query ? internships : internships.filter((int) => matchesInternshipQuery(int, query))),
-    [internships, query]
-  );
-
   const filteredJobs = useMemo(
-    () => filterJobs(searchFilteredJobs, jobFilters),
-    [searchFilteredJobs, jobFilters]
+    () => filterJobs(jobs, jobFilters),
+    [jobs, jobFilters]
   );
 
   const filteredInternships = useMemo(
-    () => filterInternships(searchFilteredInternships, internshipFilters),
-    [searchFilteredInternships, internshipFilters]
+    () => filterInternships(internships, internshipFilters),
+    [internships, internshipFilters]
   );
 
   useEffect(() => {
@@ -169,6 +99,7 @@ const SearchResults = () => {
       try {
         setLoading(true);
         setError(null);
+        setSearchEngine(null);
 
         const response = await api.post('/search', {
           parsedValue: query,
@@ -176,6 +107,9 @@ const SearchResults = () => {
 
         setJobs(response.data.jobs || []);
         setInternships(response.data.internships || []);
+        if (response.data.engine != null) {
+          setSearchEngine(response.data.engine);
+        }
       } catch (err) {
         setError(
           err.response?.data?.error ||
@@ -239,6 +173,12 @@ const SearchResults = () => {
                 {totalInternships} internship
                 {totalInternships !== 1 ? 's' : ''}
               </p>
+              {searchEngine && (
+                <p className="text-sm text-gray-500 mt-2">
+                  Search backend:{' '}
+                  <span className="font-mono font-medium text-gray-700">{searchEngine}</span>
+                </p>
+              )}
             </div>
 
             {/* Tabs */}
