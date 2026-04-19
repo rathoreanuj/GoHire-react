@@ -93,9 +93,9 @@ app.use('/api', (req, res, next) => {
 
 // Swagger (OpenAPI) docs (spec lives outside backend folder)
 // URL: /api/docs and /api/docs.json
-// Spec file: applicant/swagger/openapi.js
+// Spec file: applicant/backend/swagger/openapi.js
 // eslint-disable-next-line global-require
-const openapiSpec = require('../swagger/openapi');
+const openapiSpec = require('./swagger/openapi');
 app.get('/api/docs.json', (req, res) => res.json(openapiSpec));
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(openapiSpec, { explorer: true }));
 
