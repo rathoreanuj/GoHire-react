@@ -13,7 +13,6 @@ const ApplicantProfile = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Redirect non-premium users to upgrade page
   useEffect(() => {
     if (user && !user.isPremium) {
       navigate('/upgrade', { replace: true });
