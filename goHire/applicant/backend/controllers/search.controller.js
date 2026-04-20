@@ -107,12 +107,13 @@ const search = async (req, res) => {
         const out = await searchWithFuse(enteredValue);
         jobs = out.jobs;
         internships = out.internships;
-        engine = 'solr';
+        engine = 'fuse';
       }
     } else {
       const out = await searchWithFuse(enteredValue);
       jobs = out.jobs;
       internships = out.internships;
+      engine = 'fuse';
     }
 
     res.setHeader('X-Search-Engine', engine);
