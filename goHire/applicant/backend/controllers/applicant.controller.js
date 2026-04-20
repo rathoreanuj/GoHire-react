@@ -102,12 +102,15 @@ const getJobs = async (req, res) => {
     try {
       cachedData = await redis.get(cacheKey);
     } catch (error) {
-      console.error("Redis GET error:", err);
+      console.error("Redis GET error:", error);
     }
 
     if(cachedData) {
+      res.set("X-Cache", "HIT");
       console.log("Serving from Redis cache");
       return res.status(200).json(JSON.parse(cachedData));
+    } else {
+      res.set("X-Cache", "MISS");
     }
 
     console.log("Cache miss - querying MongoDB");
@@ -254,12 +257,15 @@ const getInternships = async (req, res) => {
     try {
       cachedData = await redis.get(cacheKey);
     } catch (error) {
-      console.error("Redis GET error:", err);
+      console.error("Redis GET error:", error);
     }
 
     if(cachedData) {
+      res.set("X-Cache", "HIT");
       console.log("Serving from Redis cache");
       return res.status(200).json(JSON.parse(cachedData));
+    } else {
+      res.set("X-Cache", "MISS");
     }
 
     console.log("Cache miss - querying MongoDB");
