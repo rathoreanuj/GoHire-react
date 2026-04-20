@@ -18,7 +18,6 @@ const AppliedJobs = () => {
         setLoading(true);
         setError(null);
 
-        // Fetch applications for the current user
         const apps = await applicantApi.getAppliedJobs();
         setApplications(apps || []);
 
